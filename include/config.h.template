@@ -1,0 +1,37 @@
+#pragma once
+
+// Configure the Wifi you want to connect to in order to submit the measurements.
+#define WIFI_SSID     ""
+#define WIFI_PASSWORD ""
+
+// Configure your InfluxDB settings here
+#define INFLUXDB_TOKEN  ""
+#define INFLUXDB_ORG    ""
+#define INFLUXDB_URL    ""
+#define INFLUXDB_BUCKET ""
+
+#define DATA_POINT_SENSOR_ID ""
+
+// How much gas (in m^3) is used on each turnaround on the measured ring
+#define DATA_POINT_VALUE 0.01
+
+// The thresholds to detect a turnaround of the last ring of the meter.
+// You might need to tweak these values for your meter model.
+// Make sure the delta between the high and the low treshold needs to
+// be large enough to prevent double triggers.
+#define MAGNET_THRESHOLD_HIGH  100
+#define MAGNET_THRESHOLD_LOW   -100
+
+// Set timezone string according to https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html
+// Examples:
+//  Pacific Time: "PST8PDT"
+//  Eastern: "EST5EDT"
+//  Japanesse: "JST-9"
+//  Central Europe: "CET-1CEST,M3.5.0,M10.5.0/3"
+#define TZ_INFO "CET-1CEST,M3.5.0,M10.5.0/3"
+
+// Accurate time is necessary for certificate validation
+// For the fastest time sync find NTP servers in your area: https://www.pool.ntp.org/zone/
+// Syncing progress and the time will be printed to Serial
+#define NTP_SERVER_1 "0.pool.ntp.org"
+#define NTP_SERVER_2 "1.pool.ntp.org"
