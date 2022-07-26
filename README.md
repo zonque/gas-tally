@@ -49,6 +49,8 @@ Copy `include/config.h.template` to `include/config.h` and add your configuratio
 
 ## Influx
 
+The easiest way to get started is to use [InfluxDB's hosted cloud service](https://cloud2.influxdata.com/signup).
+
 Use InfluxDB queries to make use of the data. Note that the data represents multiple data points with the same value each,
 so you need to select the `sum` aggregation to plot meaningful graphs.
 
@@ -68,6 +70,48 @@ Here's an example of the plot that resulted from the query above:
 
 ![influx graph example](https://github.com/zonque/gas-tally/blob/main/images/influx.png)
 
+## Homeassistant
+
+[HomeAssistant](https://home-assistant.io) as support for Influx queries built-in. Here's an example config to display the measurements of your meter for the last hour, day and week:
+
+```
+- platform: influxdb
+  api_version: 2
+  ssl: true
+  host: XXX
+  port: 443
+  token: XXX
+  organization: XXX
+  bucket: gas-tally
+  queries_flux:
+    - range_start: -7d
+      name: Gas usage in the last 7 days
+      query: >
+        filter(fn: (r) => r["_measurement"] == "usage")
+        |> filter(fn: (r) => r["sensor-id"] == "my-sensor")
+        |> filter(fn: (r) => r["_field"] == "m3")
+        |> aggregateWindow(every: inf, fn: sum)
+        |> cumulativeSum()
+      value_template: "{{ value|float(0)|round(2) }} m^3"
+    - range_start: -24h
+      name: Gas usage in the last 24h
+      query: >
+        filter(fn: (r) => r["_measurement"] == "usage")
+        |> filter(fn: (r) => r["sensor-id"] == "my-sensor")
+        |> filter(fn: (r) => r["_field"] == "m3")
+        |> aggregateWindow(every: inf, fn: sum)
+        |> cumulativeSum()
+      value_template: "{{ value|float(0)|round(2) }} m^3"
+    - range_start: -1h
+      name: Gas usage in the last hour
+      query: >
+        filter(fn: (r) => r["_measurement"] == "usage")
+        |> filter(fn: (r) => r["sensor-id"] == "my-sensor")
+        |> filter(fn: (r) => r["_field"] == "m3")
+        |> aggregateWindow(every: inf, fn: sum)
+        |> cumulativeSum()
+      value_template: "{{ value|float(0)|round(2) }} m^3"
+```
 
 ## License
 
