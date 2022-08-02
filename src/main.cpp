@@ -15,7 +15,6 @@ static Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(0);
 static ESP8266WiFiMulti wifiMulti;
 
 static InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN, InfluxDbCloud2CACert);
-static Point sensor("usage");
 
 static bool latched = false;
 
@@ -50,6 +49,22 @@ void displaySensorDetails(void)
     Serial.println("------------------------------------");
 }
 
+static void logDataPoint()
+{
+    static Point sensor("usage");
+
+    sensor.clearFields();
+    sensor.clearTags();
+
+    sensor.addTag("sensor-id", DATA_POINT_SENSOR_ID);
+    sensor.addField("m3", DATA_POINT_VALUE);
+
+    if (!client.writePoint(sensor)) {
+        Serial.print("InfluxDB write failed: ");
+        Serial.println(client.getLastErrorMessage());
+    }
+}
+
 void setup(void)
 {
     delay(3000);
@@ -61,7 +76,6 @@ void setup(void)
     mag.begin();
     mag.setMagGain(HMC5883_MAGGAIN_8_1);
 
-    /* Display some basic information on this sensor */
     displaySensorDetails();
 
     WiFi.mode(WIFI_STA);
@@ -116,19 +130,8 @@ void loop(void)
     int value = event.magnetic.z;
 
     if (value > MAGNET_THRESHOLD_HIGH && latched) {
-        sensor.clearFields();
-        sensor.clearTags();
-
-        sensor.addTag("sensor-id", DATA_POINT_SENSOR_ID);
-        sensor.addField("m3", DATA_POINT_VALUE);
-
         Serial.println("Turnaround detected, logging data point!");
-
-        if (!client.writePoint(sensor)) {
-            Serial.print("InfluxDB write failed: ");
-            Serial.println(client.getLastErrorMessage());
-        }
-
+        logDataPoint();
         latched = false;
         digitalWrite(PIN_LED, 0);
     }
